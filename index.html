@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Projeto Chat</title>
+
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+
+  <body>
+    <section class="paginaPrincipal">
+      <div class="content">
+        <div class="text">
+          <h2>SEJA BEM-VINDO <br /><span>SkimmCHAT</span></h2>
+
+          <a href="#"
+            ><button
+              id="ativaChat"
+              class="botaoConsulte"
+              onclick="openModalCad()"
+            >
+              VEM CONVERSAR
+            </button></a
+          >
+        </div>
+      </div>
+    </section>
+
+    <div>
+      <button onclick="openModalLogar()" class="botaoCard">LOGIN</button>
+    </div>
+
+    <div class="circle"></div>
+
+    <div class="modal-containerCad">
+      <div class="modal">
+        <div class="box-questions">
+          <div class="header">
+            <p>SkimmCHAT</p>
+
+            <input
+              class="recebeInfo"
+              id="nome"
+              placeholder="Seu nome de usuário"
+              autocomplete="off"
+            />
+          </div>
+
+          <p id="status"></p>
+          <div id="history">
+            <ul id="mensagens"></ul>
+          </div>
+
+          <form>
+            <div class="footer">
+              <input
+                type="text"
+                id="mensagem"
+                autocomplete="off"
+                placeholder="Digite a mensagem..."
+              />
+              <button><img src="img/imgEnviar.png" width="14px" height="14px" alt=""></button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="card card-1">
+      <div class="card-header">
+        <img src="img/Design sem nome.png" class="card-img" />
+      </div>
+
+      <div class="card-body">
+        <h3 class="card-local">Nosso BATE PAPO</h3>
+        <p class="card-texto">
+          Lorem ipsum dolor sit amet, consectetur adipisicing elit. Odio libero
+          saepe quo excepturi quisquam, dolores doloremque cupiditate adipisci
+          incidunt mollitia. Lorem ipsum dolor sit amet, consectetur adipisicing
+          elit. Odio libero saepe quo excepturi quisquam, dolores doloremque
+          cupiditate adipisci incidunt mollitia. Lorem ipsum dolor sit amet,
+          consectetur adipisicing elit. Odio libero saepe quo excepturi
+          quisquam, dolores doloremque cupiditate adipisci incidunt mollitia.
+        </p>
+      </div>
+
+      <div class="card-footer">
+        <li><a>Ver Mais</a></li>
+      </div>
+    </div>
+
+    <div class="modal-containerLogar">
+      <div class="modal">
+        <div class="containerDoLogar">
+          <div class="butaoForm">
+            <div class="butao2Color"></div>
+            <button id="mudeLogar">Login</button>
+            <button id="mudeCadastro">Cadastro</button>
+          </div>
+
+          <form
+            id="signin"
+            class="formsLogar"
+            onsubmit="event.preventDefault(); fazerLogin()"
+          >
+            <input
+              type="text"
+              class="editarCaixaLogar"
+              placeholder="Usúario"
+              id="email"
+              required
+            />
+
+            <input
+              type="password"
+              class="editarCaixaLogar"
+              placeholder="Senha"
+              id="senha"
+              required
+            />
+            <i class="fas fa-lock iSenha"></i>
+            <div class="divChecar">
+              <input type="checkbox" />
+              <span>Lembrar Senha</span>
+            </div>
+            <button type="submit" class="butaoLogarCad" onclick="recebeDados()">Logar</button>
+          </form>
+
+          <form id="signup" class="formsLogar">
+            <input
+              type="text"
+              class="editarCaixaLogar"
+              placeholder="Usúario"
+              id="cademail"
+              required
+            />
+
+            <input
+              type="password"
+              class="editarCaixaLogar"
+              placeholder="Senha"
+              id="cadsenha"
+              required
+            />
+            <i class="fas fa-lock iSenha"></i>
+            <input
+              type="password"
+              class="editarCaixaLogar"
+              placeholder="Senha"
+              required
+            />
+            <i class="fas fa-lock iSenha2"></i>
+            <div class="divChecar">
+              <input type="checkbox" required />
+              <span>Termos</span>
+            </div>
+            <button type="button" class="butaoLogarCad" onclick="enviarDados()">
+              Cadastre-se
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Importa o script do Socket.IO -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+
+        //Criar uma instancia do Socket.io
+        const socket = io()
+
+        //Selecione o input nome
+        const nomeInput = document.getElementById('nome');
+
+        //Selecione o input nome
+        const mensagemInput = document.getElementById('mensagem');
+
+        //Selecione o input nome
+        const mensagensInput = document.getElementById('mensagens');
+
+        let usuarioAtual
+
+        //Adiciona um evento para o envio do formulario não atualizar
+        document.querySelector('form').addEventListener('submit', event => {
+            //Previne o envio do formulário
+            event.preventDefault();
+
+            //Obtem o valor do input do nome do usuario e da Mensagem
+            const nome = nomeInput.value;
+            const mensagem = mensagemInput.value;
+
+            //Criar um evento chamado chat message - EMIT
+
+            if(nome && mensagem){
+                socket.emit('chat message', { nome, mensagem, userId: socket.id})
+            }
+
+            //Um metodo chamado trim que remove os espaços em branco do inicio ao fim
+            nome.trim() && mensagem.trim();
+
+            //Limpa o input a mensagem
+            mensagemInput.value = '';
+
+            //Desabilita o input do nome do usuario apos a primeira mensagem
+            nomeInput.disable = true;
+        });
+
+        socket.on("connect", () =>{
+            console.log(socket.id)
+            usuarioAtual = socket.id
+        })
+
+        //Adiciona um evento para mensagem recebida do servidor
+        socket.on('chat message', dados => {
+
+            //Cria um elemento de lista para exibir as mensagens
+
+            const lista = document.createElement('li')
+
+            if(dados.userId === usuarioAtual){
+                lista.style.textAlign = 'right'
+                lista.style.listStyle = 'none'
+            } else{
+                lista.style.textAlign = 'left'
+                lista.style.listStyle = 'none'
+            }
+
+            //Definir o texto da mensagem
+
+            lista.textContent = `${dados.nome}: ${dados.mensagem}`;
+
+            //Adiciona o elemento na lista de mensagens
+            mensagens.appendChild(lista)
+        })
+
+      const modalCad = document.querySelector(".modal-containerCad");
+
+      function openModalCad() {
+        modalCad.classList.add("active");
+      }
+
+      function closeModalCad() {
+        modalCad.classList.remove("active");
+      }
+
+      //Parte do código do Login
+      const modalLogar = document.querySelector(".modal-containerLogar");
+
+      function openModalLogar() {
+        modalLogar.classList.add("active");
+      }
+
+      function closeModalLogar() {
+        modalLogar.classList.remove("active");
+      }
+
+      var formSignin = document.querySelector("#signin");
+      var formSignup = document.querySelector("#signup");
+      var butao2Color = document.querySelector(".butao2Color");
+
+      document.querySelector("#mudeLogar").addEventListener("click", () => {
+        formSignin.style.left = "25px";
+        formSignup.style.left = "450px";
+        butao2Color.style.left = "0px";
+      });
+
+      document.querySelector("#mudeCadastro").addEventListener("click", () => {
+        formSignin.style.left = "-450px";
+        formSignup.style.left = "25px";
+        butao2Color.style.left = "110px";
+      });
+
+    </script>
+  </body>
+</html>
